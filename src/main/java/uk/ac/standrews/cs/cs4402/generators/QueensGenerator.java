@@ -1,7 +1,9 @@
+package uk.ac.standrews.cs.cs4402.generators;
+
 public final class QueensGenerator {
   public static void main (String[] args) {
     if (args.length != 1) {
-      System.out.println("Usage: java QueensGenerator <n>") ;
+      System.out.println("Usage: java uk.ac.standrews.cs.cs4402.generators.QueensGenerator <n>") ;
       return ;
     }
     int n = Integer.parseInt(args[0]) ;

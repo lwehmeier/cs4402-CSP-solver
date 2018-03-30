@@ -1,3 +1,9 @@
+package uk.ac.standrews.cs.cs4402.solver.input;
+
+import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryCSP;
+import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryConstraint;
+import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryTuple;
+
 import java.io.* ;
 import java.util.* ;
 
@@ -14,7 +20,7 @@ public final class BinaryCSPReader {
    */
   public static void main(String[] args) {
     if (args.length != 1) {
-      System.out.println("Usage: java BinaryCSPReader <file.csp>") ;
+      System.out.println("Usage: java uk.ac.standrews.cs.cs4402.solver.input.BinaryCSPReader <file.csp>") ;
       return ;
     }
     BinaryCSPReader reader = new BinaryCSPReader() ;

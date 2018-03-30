@@ -2,3 +2,5 @@ CS4402_1718_P2.pdf
 .gradle/
 build/
 out/
+.idea/
+*.iml
