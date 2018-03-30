@@ -1,0 +1,27 @@
+<FindBugsFilter>
+ <Match>
+   <Class name="uk.ac.standrews.cs5031.CLITest" />
+   <Method name="optionsTest" />
+   <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+ </Match>
+  <Match>
+   <Class name="uk.ac.standrews.cs5031.RemoteUITest" />
+   <Method name="winGameTest" />
+   <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+ </Match>
+ <Match>
+   <Class name="uk.ac.standrews.cs5031.RemoteUITest" />
+   <Method name="losGameTest" />
+   <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+ </Match>
+ <Match>
+   <Class name="uk.ac.standrews.cs5031.ui.CLI" />
+   <Method name="help" />
+   <Bug pattern="DM_EXIT" />
+ </Match>
+ <Match>
+   <Class name="uk.ac.standrews.cs5031.ui.RemoteUI" />
+   <Method name="help" />
+   <Bug pattern="DM_EXIT" />
+ </Match>
+</FindBugsFilter>
