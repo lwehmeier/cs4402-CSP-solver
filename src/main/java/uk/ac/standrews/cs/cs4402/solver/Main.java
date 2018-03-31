@@ -9,11 +9,11 @@ import uk.ac.standrews.cs.cs4402.solver.input.BinaryCSPReader;
 public class Main {
     static String inputFile = "FinnishSudoku.csp";
     public static void main(String args[]){
-        try {
-            Thread.sleep(25000);
-            System.out.println("starting in 1s");
-            Thread.sleep(1000);
-        }catch (InterruptedException ex){}
+//        try {
+//            Thread.sleep(25000);
+//            System.out.println("starting in 1s");
+//            Thread.sleep(1000);
+//        }catch (InterruptedException ex){}
 
         long startTime, readTime, graphBuildTime, solverSetupTime, solveTime;
 

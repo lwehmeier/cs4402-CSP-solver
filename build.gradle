@@ -13,7 +13,7 @@ buildscript {
         classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
     }
 }
-//apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'com.github.johnrengelman.shadow'
 repositories {
     mavenCentral()
 }
@@ -35,7 +35,7 @@ jar {
   manifest {
     attributes(
       'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'org.stacspics.Main'
+      'Main-Class': 'uk.ac.standrews.cs.cs4402.solver.Main'
     )
   }
 }
