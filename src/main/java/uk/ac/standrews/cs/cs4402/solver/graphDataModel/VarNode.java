@@ -7,9 +7,11 @@ import java.util.Set;
 public class VarNode {
     private Set<Integer> domain;
     private static int id=0;
+    private int varID;
     private String name;
 
     private VarNode(){
+        varID = id;
         name = Integer.toString(id++);
     }
     public VarNode(Set<Integer> domain){
@@ -39,6 +41,12 @@ public class VarNode {
 
     public boolean prune(Integer value){
         return domain.remove(value);
+    }
+    public int getId(){
+        return varID;
+    }
+    public boolean extendDomain(Integer value){
+        return domain.add(value);
     }
 
     public String getName() {
