@@ -7,8 +7,12 @@ import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.BasicVisualizationServer;
+import edu.uci.ics.jung.visualization.VisualizationViewer;
+import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
+import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.DefaultEdgeLabelRenderer;
+import org.apache.commons.lang3.StringUtils;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.BinaryCSPGraph;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.ConstraintEdge;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.NoSolutionException;
@@ -49,8 +53,8 @@ public class ForwardSolver implements Solver {
     protected void createGraphNode(String assignment){
         try {
             String newNode = bcsp.stateToString();
-            System.out.println("Created new Child: " + newNode + ", parent: " + searchTreeActiveNode + " for assignment: " + assignment);
-            searchTree.addChild(assignment, searchTreeActiveNode, newNode);
+            //System.out.println("Created new Child: " + newNode + ", parent: " + searchTreeActiveNode + " for assignment: " + assignment);
+            searchTree.addChild(searchTreeActiveNode+":"+newNode+":"+assignment, searchTreeActiveNode, newNode);
             searchTreeActiveNode = newNode;
         }
         catch (IllegalArgumentException ex){
@@ -62,13 +66,18 @@ public class ForwardSolver implements Solver {
     public boolean step() {
         //assign first domain item to first possible variable
         List<VarNode> vars = bcsp.getNodes();
-        VarNode currentCSPVar = vars.stream().filter(varNode -> varNode.getDomain().size()>1).findFirst().get(); //only select nodes with domain >1 value
+        Optional<VarNode> res = vars.stream().filter(varNode -> varNode.getDomain().size()>1).findFirst();
+        if(!res.isPresent()){
+            System.out.println("???");
+        }
+        VarNode currentCSPVar = res.get(); //only select nodes with domain >1 value
 
         int assignment = currentCSPVar.getDomain().toArray(new Integer[1])[0];
 
         boolean hasSolution = false;
         String searchTreeEdge = "";
         try {//assign left node, i.e. assign value to variable
+            bcsp.push();
             Integer domain[] = currentCSPVar.getDomain().toArray(new Integer[0]);//create copy to avoid
             // concurrent modification exception as crappy java can't handle removal from Set while iterating
             // Srsly, it's a managed language. It should be able to dynamically modify iterators..
@@ -78,9 +87,12 @@ public class ForwardSolver implements Solver {
                 }
             }
             searchTreeEdge = currentCSPVar.toString();
-            createGraphNode(searchTreeEdge);
-            bcsp.reviseArcs(currentCSPVar.getId());
-            bcsp.push();
+            try {
+                bcsp.reviseArcs(currentCSPVar.getId());
+            }
+            finally {
+                createGraphNode(searchTreeEdge);
+            }
             if(solved()){
                 hasSolution = true;
                 return true;
@@ -92,24 +104,28 @@ public class ForwardSolver implements Solver {
             try {
                 bcsp.undoCurrentPrune();//reset changes made in try/left branch
                 bcsp.pruneFromVariableDomain(currentCSPVar.getId(), assignment);
-                System.out.print("No Solution, traversing up from " + searchTreeActiveNode);
+                //System.out.print("No Solution, traversing up from " + searchTreeActiveNode);
                 searchTreeActiveNode = searchTree.getParent(searchTreeActiveNode);
-                System.out.println(" to parent node: " + searchTreeActiveNode);
+                //System.out.println(" to parent node: " + searchTreeActiveNode);
                 searchTreeEdge = currentCSPVar.toString();
-                createGraphNode(searchTreeEdge);
-                bcsp.reviseArcs(currentCSPVar.getId());
-                bcsp.push();
+                try {
+                    bcsp.reviseArcs(currentCSPVar.getId());
+                }
+                finally {
+                    createGraphNode(searchTreeEdge);
+                }
                 if (solved()) {
                     hasSolution = true;
                     return true;
                 }
                 hasSolution = step();//recurse
             }
-            catch (NoSuchElementException ex2){
+            catch (NoSolutionException ex2){
                 bcsp.pop();
-                System.out.print("Alt branch failed at node " + searchTreeActiveNode);
+                bcsp.undoCurrentPrune();
+                //System.out.print("Alt branch failed at node " + searchTreeActiveNode);
                 searchTreeActiveNode = searchTree.getParent(searchTreeActiveNode); //traverse up in our search tree. Only used for visualisation
-                System.out.println(", traversing up to parent node: " + searchTreeActiveNode);
+                //System.out.println(", traversing up to parent node: " + searchTreeActiveNode);
                 throw ex2;//pass on
             }
             return hasSolution;
@@ -124,14 +140,16 @@ public class ForwardSolver implements Solver {
     @Override
     public void displaySearchTree() {
 
-        Layout<String, String> layout = new TreeLayout<String, String>(searchTree, 130, 200);
+        Layout<String, String> layout = new TreeLayout<String, String>(searchTree, 130, 170);
         // The BasicVisualizationServer<V,E> is parameterized by the edge types
-        BasicVisualizationServer<String, String> vv =
-                new BasicVisualizationServer<String, String>(layout);
-        vv.setPreferredSize(new Dimension(1000,950)); //Sets the viewing area size
-
+        VisualizationViewer<String, String> vv =
+                new VisualizationViewer<String, String>(layout);
+        vv.setPreferredSize(new Dimension(1000,800)); //Sets the viewing area size
+        DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
+        gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+        vv.setGraphMouse(gm);
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
-        vv.getRenderContext().setEdgeLabelTransformer(s -> s);
+        vv.getRenderContext().setEdgeLabelTransformer(s -> StringUtils.substringAfterLast(s, ":"));
 
         JFrame frame = new JFrame("Solver search tree");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -143,5 +161,10 @@ public class ForwardSolver implements Solver {
     @Override
     public Map<Integer, Integer> getAssignments() {
         return bcsp.getAssignments();
+    }
+
+    @Override
+    public int getNumNodes() {
+        return searchTree.getVertexCount();
     }
 }

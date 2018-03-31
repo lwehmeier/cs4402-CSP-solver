@@ -4,6 +4,9 @@ import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.BasicVisualizationServer;
+import edu.uci.ics.jung.visualization.VisualizationViewer;
+import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
+import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import org.jgrapht.alg.util.Pair;
 import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryCSP;
@@ -45,9 +48,12 @@ public class BinaryCSPGraph {
         Layout<VarNode, ConstraintEdge> layout = new CircleLayout<>(graph);
         layout.setSize(new Dimension(900,900)); // sets the initial size of the space
         // The BasicVisualizationServer<V,E> is parameterized by the edge types
-        BasicVisualizationServer<VarNode, ConstraintEdge> vv =
-                new BasicVisualizationServer<VarNode, ConstraintEdge>(layout);
+        VisualizationViewer<VarNode, ConstraintEdge> vv =
+                new VisualizationViewer<VarNode, ConstraintEdge>(layout);
         vv.setPreferredSize(new Dimension(950,950)); //Sets the viewing area size
+        DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
+        gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
+        vv.setGraphMouse(gm);
 
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
         vv.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller());
@@ -90,6 +96,7 @@ public class BinaryCSPGraph {
                 }
             }
         }
+        //assert variables.parallelStream().allMatch(varNode -> varNode.getDomain().size()>=1);
     }
     protected Set<Integer> getUnreachableDomainSubset(VarNode src, VarNode target, ConstraintEdge ce){
         Set<Integer> srcDomain = src.getDomain();
@@ -110,23 +117,25 @@ public class BinaryCSPGraph {
     }
     protected void pruneFromVariableDomain(VarNode var, int value){
         if(var.prune(value)){
-            if(var.getDomain().size()==0){
-                throw new NoSolutionException();
-            }
             Set<Integer> is = currentPruneOp.get(var);
             if(is == null){
                 is = new HashSet<>();
                 currentPruneOp.put(var, is);
             }
             is.add(value);
+            if(var.getDomain().size()==0){
+                throw new NoSolutionException();
+            }
         }
 
     }
     public void push(){
+        //System.out.println("BCSPGraph: push()");
         pruneSteps.push(currentPruneOp);
         currentPruneOp = new HashMap<>();
     }
     public boolean pop(){
+        //System.out.println("BCSPGraph: pop()");
         if(pruneSteps.size()==0){
             return false;
         }
@@ -140,6 +149,7 @@ public class BinaryCSPGraph {
         return true;
     }
     public boolean undoCurrentPrune(){
+        //System.out.println("BCSPGraph: rollback()");
         for(VarNode vn : currentPruneOp.keySet()){
             for(Integer val : currentPruneOp.get(vn)){
                 vn.extendDomain(val);

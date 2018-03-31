@@ -10,4 +10,5 @@ public interface Solver {
     boolean isSAT();
     void displaySearchTree();
     Map<Integer, Integer> getAssignments();
+    int getNumNodes();
 }

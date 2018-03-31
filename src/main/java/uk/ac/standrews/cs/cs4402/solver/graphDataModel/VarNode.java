@@ -10,6 +10,9 @@ public class VarNode {
     private int varID;
     private String name;
 
+    public static void reset(){
+        id=0;
+    }
     private VarNode(){
         varID = id;
         name = Integer.toString(id++);
