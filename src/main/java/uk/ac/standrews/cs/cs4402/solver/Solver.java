@@ -6,9 +6,9 @@ import java.util.Map;
 
 public interface Solver {
     void setCSP(BinaryCSPGraph csp);
-    boolean step();
+    boolean step(boolean slow);
     boolean isSAT();
-    void displaySearchTree();
+    void displaySearchTree(boolean update);
     Map<Integer, Integer> getAssignments();
     int getNumNodes();
 }

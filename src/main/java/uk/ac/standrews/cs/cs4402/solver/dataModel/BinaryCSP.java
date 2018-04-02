@@ -5,6 +5,7 @@ import uk.ac.standrews.cs.cs4402.solver.graphDataModel.ConstraintEdge;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.VarNode;
 
 import java.util.* ;
+import java.util.stream.Collectors;
 
 public final class BinaryCSP {
   private int[][] domainBounds ;
@@ -41,7 +42,7 @@ public final class BinaryCSP {
       }
       if(bc.getSecondVar() == varIndex ) {
         edges.add(new Pair<>(bc.getFirstVar(),
-                new ConstraintEdge(bc.getTuples())));
+                new ConstraintEdge(bc.getTuples().parallelStream().map(tuple -> new Pair<Integer, Integer>(tuple.getSecond(), tuple.getFirst())).collect(Collectors.toSet()))));
       }
     }
     return edges;

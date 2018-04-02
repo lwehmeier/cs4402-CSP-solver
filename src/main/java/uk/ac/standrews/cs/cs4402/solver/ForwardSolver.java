@@ -2,14 +2,18 @@ package uk.ac.standrews.cs.cs4402.solver;
 
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
+import edu.uci.ics.jung.algorithms.layout.StaticLayout;
 import edu.uci.ics.jung.algorithms.layout.TreeLayout;
 import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.Tree;
 import edu.uci.ics.jung.visualization.BasicVisualizationServer;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
+import edu.uci.ics.jung.visualization.control.CrossoverScalingControl;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
+import edu.uci.ics.jung.visualization.control.ScalingControl;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.renderers.DefaultEdgeLabelRenderer;
 import org.apache.commons.lang3.StringUtils;
@@ -17,9 +21,12 @@ import uk.ac.standrews.cs.cs4402.solver.graphDataModel.BinaryCSPGraph;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.ConstraintEdge;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.NoSolutionException;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.VarNode;
+import org.apache.commons.collections15.Transformer;
+import com.google.common.base.Function;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
 
@@ -63,7 +70,13 @@ public class ForwardSolver implements Solver {
         }
     }
     @Override
-    public boolean step() {
+    public boolean step(boolean slow) {
+        if(slow) {
+            try {
+                Thread.sleep(250);
+            } catch (InterruptedException ex) {
+            }
+        }
         //assign first domain item to first possible variable
         List<VarNode> vars = bcsp.getNodes();
         Optional<VarNode> res = vars.stream().filter(varNode -> varNode.getDomain().size()>1).findFirst();
@@ -97,7 +110,7 @@ public class ForwardSolver implements Solver {
                 hasSolution = true;
                 return true;
             }
-            hasSolution = step();//recurse
+            hasSolution = step(slow);//recurse
             return hasSolution;
         }
         catch (NoSolutionException ex){//try right node, i.e. remove assignment from left from variable domain
@@ -118,7 +131,7 @@ public class ForwardSolver implements Solver {
                     hasSolution = true;
                     return true;
                 }
-                hasSolution = step();//recurse
+                hasSolution = step(slow);//recurse
             }
             catch (NoSolutionException ex2){
                 bcsp.pop();
@@ -138,24 +151,79 @@ public class ForwardSolver implements Solver {
     }
 
     @Override
-    public void displaySearchTree() {
+    public void displaySearchTree(boolean update) {
 
         Layout<String, String> layout = new TreeLayout<String, String>(searchTree, 130, 170);
         // The BasicVisualizationServer<V,E> is parameterized by the edge types
         VisualizationViewer<String, String> vv =
                 new VisualizationViewer<String, String>(layout);
-        vv.setPreferredSize(new Dimension(1000,800)); //Sets the viewing area size
+        vv.setPreferredSize(new Dimension(640,480)); //Sets the viewing area size
         DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
         gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
         vv.setGraphMouse(gm);
-        vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
+        //vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
         vv.getRenderContext().setEdgeLabelTransformer(s -> StringUtils.substringAfterLast(s, ":"));
+        vv.getRenderingHints().remove(RenderingHints.KEY_ANTIALIASING);
+        // Transformer maps the vertex number to a vertex property
 
+        Function<String, Paint> vertexColour = new Function<String, Paint>(){
+            public Paint apply(String input) {
+                if(input.contains("{}")) {//empty domain
+                    return Color.RED;
+                }
+                //if(input.equals("ROOT")){
+                //    return Color.BLACK;
+                //}
+                if(input.equals(searchTreeActiveNode)) {//last node, either solution or problem unsolvable
+                    if(!searchTreeActiveNode.contains("{}")){//no empty domains, ergo solution or current search node
+                        if(searchTreeActiveNode.matches(".*\\{([0-9]+,)+[0-9]+,\\}.*")){
+                            return Color.BLUE;
+                        }
+                        return Color.GREEN;
+                    }
+                }
+                if(searchTree.getChildCount(input) < 2)
+                    return Color.ORANGE;
+                else
+                    return Color.MAGENTA;
+            }
+        };
+        vv.getRenderContext().setVertexFillPaintTransformer(vertexColour);
         JFrame frame = new JFrame("Solver search tree");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.getContentPane().add(vv);
         frame.pack();
         frame.setVisible(true);
+        if(update) {
+            new Thread(() -> {
+                int nVert = searchTree.getVertexCount();
+                double lastZoom = 1.0;
+                while (frame.isDisplayable()) {
+                    try {
+                        Thread.sleep(200);
+                        if(searchTree.getVertexCount()!=nVert) {
+                            nVert = searchTree.getVertexCount();
+                            Layout cl = vv.getGraphLayout();
+                            int treeHeight = ((Tree<String, String>) cl.getGraph()).getHeight() + 1;
+                            Layout l = new TreeLayout<String, String>(searchTree, 100, 100);
+                            vv.setGraphLayout(l);
+                                /*ScalingControl scaler = new CrossoverScalingControl();
+                                double zoom = (double)frame.getHeight() / (100 * treeHeight);
+                                if(zoom < 1) {
+                                    zoom = 1.2- (lastZoom - zoom);
+                                    lastZoom = zoom;
+                                    Point2D zoomPos = vv.getCenter();
+                                    zoomPos = new Point2D.Double(zoomPos.getX()*0.75, zoomPos.getY()*0.75);
+                                    scaler.scale(vv, (float) (zoom), zoomPos);
+                                }
+                                */
+                        }
+                    } catch (InterruptedException ex) {
+                    }
+                }
+            })
+                    .start();
+        }
     }
 
     @Override

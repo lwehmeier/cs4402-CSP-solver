@@ -28,6 +28,12 @@ dependencies {
     compile group: 'net.sf.jung', name: 'jung-visualization', version: '2.1.1'
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+    // https://mvnrepository.com/artifact/org.apache.servicemix.bundles/org.apache.servicemix.bundles.collections-generic
+    compile group: 'org.apache.servicemix.bundles', name: 'org.apache.servicemix.bundles.collections-generic', version: '4.01_1'
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    compile group: 'com.google.guava', name: 'guava', version: '24.1-jre'
+
+
 
 
 }

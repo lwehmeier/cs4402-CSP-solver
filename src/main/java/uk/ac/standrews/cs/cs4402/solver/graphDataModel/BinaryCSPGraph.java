@@ -54,6 +54,7 @@ public class BinaryCSPGraph {
         DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
         gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
         vv.setGraphMouse(gm);
+        vv.getRenderingHints().remove(RenderingHints.KEY_ANTIALIASING);
 
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
         vv.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller());
@@ -75,23 +76,33 @@ public class BinaryCSPGraph {
         Set<VarNode> changedVars = new HashSet<>();
         changedVars.add(getNode(varIndex));
         boolean nodeChange = true;
+        System.out.println("reviseArcs called for Node index " + Integer.toString(varIndex));
         while(nodeChange) {
             nodeChange = false;
             //pick node in set
             for (VarNode vn : changedVars.toArray(new VarNode[0])) {//workaround loop, seems not to care that changedVars changed during iteration
+                changedVars.remove(vn);
                 //foreach edge
+                System.out.println("\tRevising arcs for Node " + vn.getName());
                 Collection<ConstraintEdge> edges = graph.getOutEdges(vn);
                 for (ConstraintEdge ce : edges) {
+                    System.out.println("\t\tChecking edge to " + graph.getOpposite(vn, ce).getName());
                     //identify impossible values at targets of outgoing edge
                     Set<Integer> rmValues = getUnreachableDomainSubset(vn, graph.getOpposite(vn, ce), ce);
                     //remove if found
                     if (rmValues.size() > 0) {
+                        System.out.print("\t\t\tRemoving variables from target domain: ");
+                        System.out.println(rmValues);
                         VarNode tgt = graph.getOpposite(vn, ce);
                         for (Integer i : rmValues) {
                             pruneFromVariableDomain(tgt, i);
                         }
                         //add target to set of changed nodes
-                        nodeChange = nodeChange || changedVars.add(tgt);
+                        boolean addStatus = changedVars.add(tgt);
+                        nodeChange = nodeChange || addStatus;
+                        if(addStatus){
+                            System.out.println("\t\t\tNode "+tgt.getName()+ "'s domain was changed, adding it to list of nodes to perform arc revision from");
+                        }
                     }
                 }
             }

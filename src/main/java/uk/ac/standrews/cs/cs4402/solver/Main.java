@@ -7,8 +7,11 @@ import uk.ac.standrews.cs.cs4402.solver.graphDataModel.VarNode;
 import uk.ac.standrews.cs.cs4402.solver.input.BinaryCSPReader;
 
 public class Main {
-    static String inputFile = "FinnishSudoku.csp";
+    static String inputFile = "langfords2_3.csp";
     public static void main(String args[]){
+        if(args.length==1){
+            inputFile = args[0];
+        }
 //        try {
 //            Thread.sleep(25000);
 //            System.out.println("starting in 1s");
@@ -27,7 +30,8 @@ public class Main {
 
         BinaryCSPGraph bcspg = BinaryCSPGraph.buildGraph(bcsp);
         graphBuildTime = System.nanoTime();
-        //bcspg.draw();
+        if (bcsp.getNoVariables() < 15)
+            bcspg.draw();
         /*bcspg.pruneFromVariableDomain(0, 3);
         bcspg.pruneFromVariableDomain(0, 0);
         bcspg.reviseArcs(0);
@@ -45,16 +49,17 @@ public class Main {
         solver.setCSP(bcspg);
         boolean SAT = false;
         solverSetupTime = System.nanoTime();
+        solver.displaySearchTree(true);
         try {
-            SAT = solver.step();
+            SAT = solver.step(true);
         } catch (NoSolutionException ex) {
             ex.printStackTrace();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         solveTime = System.nanoTime();
-        if (solver.getNumNodes() < 250)
-            solver.displaySearchTree();
+        //if (solver.getNumNodes() < 250)
+        //    solver.displaySearchTree(false);
         System.out.println(SAT);
         if (SAT) {
             System.out.println("Assignments: ");
