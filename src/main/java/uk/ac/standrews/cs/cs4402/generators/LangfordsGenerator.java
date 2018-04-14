@@ -4,7 +4,7 @@ public final class LangfordsGenerator {
   
   public static void main (String[] args) {
     if (args.length != 2) {
-      System.out.println("Usage: java uk.ac.standrews.cs.cs4402.generators.QueensGenerator <k> <n>") ;
+      System.out.println("Usage: java LangfordsGenerator <k> <n>") ;
       System.out.println("for <k> sets of <n> integers") ;
       return ;
     }
@@ -36,7 +36,7 @@ public final class LangfordsGenerator {
         }
         // constrain relative to future blocks to prevent same position being used twice
         // find start of next block
-        for (int j = block*k ; j <= seqLength; j++) {
+        for (int j = block*k ; j < seqLength; j++) {
           System.out.println("c("+((block-1)*k+i)+", "+j+")") ;
           for (int val1 = 1; val1 <= seqLength; val1++)
             for (int val2 = 1; val2 <= seqLength; val2++)

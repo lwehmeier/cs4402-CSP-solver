@@ -1,15 +1,17 @@
 package uk.ac.standrews.cs.cs4402.solver.graphDataModel;
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
-import edu.uci.ics.jung.visualization.BasicVisualizationServer;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import org.jgrapht.alg.util.Pair;
 import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryCSP;
+import uk.ac.standrews.cs.cs4402.solver.heuristics.values.ValueOrderingHeuristic;
+import uk.ac.standrews.cs.cs4402.solver.heuristics.variables.VariableOrderingHeuristic;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BinaryCSPGraph {
+    private final static boolean debug = false;
     private Graph<VarNode, ConstraintEdge> graph;
     private List<VarNode> variables;
     private Stack<Map<VarNode, Set<Integer>>> pruneSteps = new Stack<>();
@@ -65,34 +68,47 @@ public class BinaryCSPGraph {
         frame.pack();
         frame.setVisible(true);
     }
-
-    public void reviseArcs(){ //forall nodes
+    public void reviseArcs_AC25(){ //forall nodes
         //TODO: make more efficient
         for(int n = 0; n < graph.getVertexCount(); n++){
-            reviseArcs(n);
+            reviseArcs_AC25(n);
         }
     }
-    public void reviseArcs(int varIndex){ //for specified node and propagate changes
+    public void reviseArcs_AC3(){ //forall nodes
+        for(int n = 0; n < graph.getVertexCount(); n++){
+            reviseArcs_AC3(n);
+        }
+    }
+    //implements AC2.5
+    //check arcs to all nodes from changed node forall changed nodes
+    //difference to AC3: it does check all outgoing arcs for a given node,
+    //including the arc through which changes propagated to the node
+    public void reviseArcs_AC25(int varIndex){ //for specified node and propagate changes
         Set<VarNode> changedVars = new HashSet<>();
         changedVars.add(getNode(varIndex));
         boolean nodeChange = true;
-        System.out.println("reviseArcs called for Node index " + Integer.toString(varIndex));
+        if(debug)
+            System.out.println("reviseArcs_AC25 called for Node index " + Integer.toString(varIndex));
         while(nodeChange) {
             nodeChange = false;
             //pick node in set
             for (VarNode vn : changedVars.toArray(new VarNode[0])) {//workaround loop, seems not to care that changedVars changed during iteration
                 changedVars.remove(vn);
                 //foreach edge
-                System.out.println("\tRevising arcs for Node " + vn.getName());
+                if(debug)
+                    System.out.println("\tRevising arcs for Node " + vn.getName());
                 Collection<ConstraintEdge> edges = graph.getOutEdges(vn);
                 for (ConstraintEdge ce : edges) {
-                    System.out.println("\t\tChecking edge to " + graph.getOpposite(vn, ce).getName());
+                    if(debug)
+                        System.out.println("\t\tChecking edge to " + graph.getOpposite(vn, ce).getName());
                     //identify impossible values at targets of outgoing edge
                     Set<Integer> rmValues = getUnreachableDomainSubset(vn, graph.getOpposite(vn, ce), ce);
                     //remove if found
                     if (rmValues.size() > 0) {
-                        System.out.print("\t\t\tRemoving variables from target domain: ");
-                        System.out.println(rmValues);
+                        if(debug) {
+                            System.out.print("\t\t\tRemoving variables from target domain: ");
+                            System.out.println(rmValues);
+                        }
                         VarNode tgt = graph.getOpposite(vn, ce);
                         for (Integer i : rmValues) {
                             pruneFromVariableDomain(tgt, i);
@@ -101,9 +117,93 @@ public class BinaryCSPGraph {
                         boolean addStatus = changedVars.add(tgt);
                         nodeChange = nodeChange || addStatus;
                         if(addStatus){
-                            System.out.println("\t\t\tNode "+tgt.getName()+ "'s domain was changed, adding it to list of nodes to perform arc revision from");
+                            if(debug)
+                                System.out.println("\t\t\tNode "+tgt.getName()+ "'s domain was changed, adding it to list of nodes to perform arc revision from");
                         }
                     }
+                }
+            }
+        }
+        //assert variables.parallelStream().allMatch(varNode -> varNode.getDomain().size()>=1);
+    }
+    //implements AC3
+    //TODO: add set of edges instead of iterating over all for active node
+    public void reviseArcs_AC3(int varIndex){ //for specified node and propagate changes
+        Set<VarNode> changedVars = new HashSet<>();
+        changedVars.add(getNode(varIndex));
+        Set<VarNode> assignedVars = new HashSet<>();
+        variables.stream().forEach(varNode -> {if(varNode.getDomain().size()==1){assignedVars.add(varNode);}});
+        boolean nodeChange = true;
+        if(debug)
+            System.out.println("reviseArcs_AC3 called for Node index " + Integer.toString(varIndex));
+        while(nodeChange) {
+            nodeChange = false;
+            //pick node in set
+            for (VarNode vn : changedVars.toArray(new VarNode[0])) {//workaround loop, seems not to care that changedVars changed during iteration
+                changedVars.remove(vn);
+                //foreach edge
+                if(debug)
+                    System.out.println("\tRevising arcs for Node " + vn.getName());
+                Collection<ConstraintEdge> edges = graph.getOutEdges(vn);
+                for (ConstraintEdge ce : edges) {
+                    if(debug)
+                        System.out.println("\t\tChecking edge to " + graph.getOpposite(vn, ce).getName());
+                    if(assignedVars.contains(graph.getOpposite(vn, ce))){
+                        if(debug)
+                            System.out.println("\t\t\tSkipping edge to " + graph.getOpposite(vn, ce).getName() + ", varNode already assigned");
+                        continue;
+                    }
+                    //identify impossible values at targets of outgoing edge
+                    Set<Integer> rmValues = getUnreachableDomainSubset(vn, graph.getOpposite(vn, ce), ce);
+                    //remove if found
+                    if (rmValues.size() > 0) {
+                        if(debug) {
+                            System.out.print("\t\t\tRemoving variables from target domain: ");
+                            System.out.println(rmValues);
+                        }
+                        VarNode tgt = graph.getOpposite(vn, ce);
+                        for (Integer i : rmValues) {
+                            pruneFromVariableDomain(tgt, i);
+                        }
+                        //add target to set of changed nodes
+                        boolean addStatus = changedVars.add(tgt);
+                        nodeChange = nodeChange || addStatus;
+                        if(addStatus){
+                            if(debug)
+                                System.out.println("\t\t\tNode "+tgt.getName()+ "'s domain was changed, adding it to list of nodes to perform arc revision from");
+                        }
+                    }
+                }
+            }
+        }
+        //assert variables.parallelStream().allMatch(varNode -> varNode.getDomain().size()>=1);
+    }
+    //implements forward checking, single propagation step
+    public void reviseArcs_FC(int varIndex){ //for specified node and propagate changes
+        VarNode vn = getNode(varIndex);
+        if(debug)
+            System.out.println("reviseArcs_FC called for Node index " + Integer.toString(varIndex));
+        if(debug)
+            System.out.println("\tRevising arcs for Node " + vn.getName());
+        Collection<ConstraintEdge> edges = graph.getOutEdges(vn);
+        for (ConstraintEdge ce : edges) {
+            if(debug)
+                System.out.println("\t\tChecking edge to " + graph.getOpposite(vn, ce).getName());
+            //identify impossible values at targets of outgoing edge
+            Set<Integer> rmValues = getUnreachableDomainSubset(vn, graph.getOpposite(vn, ce), ce);
+            //remove if found
+            if (rmValues.size() > 0) {
+                if(debug) {
+                    System.out.print("\t\t\tRemoving variables from target domain: ");
+                    System.out.println(rmValues);
+                }
+                VarNode tgt = graph.getOpposite(vn, ce);
+                for (Integer i : rmValues) {
+                    pruneFromVariableDomain(tgt, i);
+                }
+                if(graph.getOpposite(vn, ce).getDomain().size()==1){//sz 1 is basically an assignment. Let's check it NOW
+                    System.out.println("\t\t\tTarget has only one remaining domain element, that's equal to an assignment. Checking this assignment now");
+                    reviseArcs_FC(graph.getOpposite(vn, ce).getId());
                 }
             }
         }
@@ -208,5 +308,22 @@ public class BinaryCSPGraph {
             asnm.put(vn.getId(), vn.getDomain().iterator().next());
         }
         return asnm;
+    }
+
+    //fixing java deficiencies...
+    //I need the friend keyword..
+    //https://stackoverflow.com/questions/182278/is-there-a-way-to-simulate-the-c-friend-concept-in-java
+    //AKA "signature security"
+    public Graph<VarNode, ConstraintEdge> getGraph(ValueOrderingHeuristic.Key k){
+        k.hashCode();
+        return graph;
+    }
+    public Graph<VarNode, ConstraintEdge> getGraph(VariableOrderingHeuristic.Key k){
+        k.hashCode();
+        return graph;
+    }
+    public Set<Pair<Integer,Integer>> getEdgeTuples(ValueOrderingHeuristic.Key k, ConstraintEdge e){
+        k.hashCode();
+        return e.tuples;
     }
 }

@@ -1,36 +1,26 @@
-package uk.ac.standrews.cs.cs4402.solver;
+package uk.ac.standrews.cs.cs4402.solver.solvers;
 
-import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
-import edu.uci.ics.jung.algorithms.layout.StaticLayout;
 import edu.uci.ics.jung.algorithms.layout.TreeLayout;
 import edu.uci.ics.jung.graph.DelegateTree;
-import edu.uci.ics.jung.graph.DirectedSparseGraph;
-import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.Tree;
-import edu.uci.ics.jung.visualization.BasicVisualizationServer;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
-import edu.uci.ics.jung.visualization.control.CrossoverScalingControl;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
-import edu.uci.ics.jung.visualization.control.ScalingControl;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
-import edu.uci.ics.jung.visualization.renderers.DefaultEdgeLabelRenderer;
 import org.apache.commons.lang3.StringUtils;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.BinaryCSPGraph;
-import uk.ac.standrews.cs.cs4402.solver.graphDataModel.ConstraintEdge;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.NoSolutionException;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.VarNode;
-import org.apache.commons.collections15.Transformer;
 import com.google.common.base.Function;
+import uk.ac.standrews.cs.cs4402.solver.heuristics.values.ValueOrderingHeuristic;
+import uk.ac.standrews.cs.cs4402.solver.heuristics.variables.VariableOrderingHeuristic;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Point2D;
 import java.util.*;
-import java.util.List;
 
-public class ForwardSolver implements Solver {
+public class FCSolver implements Solver {
     BinaryCSPGraph bcsp;
 
     private DelegateTree<String, String> searchTree = new DelegateTree<>();
@@ -38,8 +28,8 @@ public class ForwardSolver implements Solver {
     @Override
     public void setCSP(BinaryCSPGraph csp) {
         bcsp = csp;
-        bcsp.reviseArcs(); // reduce variable domains if possible
-        bcsp.push();
+        //bcsp.reviseArcs_simple(); // reduce variable domains if possible
+        //bcsp.push(); //actually, don't do that in fwd checking
         searchTree = new DelegateTree<>();
         searchTreeActiveNode="ROOT";
         searchTree.addVertex(searchTreeActiveNode);
@@ -70,26 +60,23 @@ public class ForwardSolver implements Solver {
         }
     }
     @Override
-    public boolean step(boolean slow) {
+    public boolean step(VariableOrderingHeuristic varH, ValueOrderingHeuristic valH, boolean slow) {
+        if(solved()){ //edge case, csp is already solved
+            return true;
+        }
         if(slow) {
             try {
                 Thread.sleep(250);
             } catch (InterruptedException ex) {
             }
         }
-        //assign first domain item to first possible variable
-        List<VarNode> vars = bcsp.getNodes();
-        Optional<VarNode> res = vars.stream().filter(varNode -> varNode.getDomain().size()>1).findFirst();
-        if(!res.isPresent()){
-            System.out.println("???");
-        }
-        VarNode currentCSPVar = res.get(); //only select nodes with domain >1 value
+        VarNode currentCSPVar = varH.getNextVal(bcsp);
 
-        int assignment = currentCSPVar.getDomain().toArray(new Integer[1])[0];
+        int assignment = valH.getNextVal(currentCSPVar);
 
         boolean hasSolution = false;
         String searchTreeEdge = "";
-        try {//assign left node, i.e. assign value to variable
+        try {//assign left node, i.e. assign values to variable
             bcsp.push();
             Integer domain[] = currentCSPVar.getDomain().toArray(new Integer[0]);//create copy to avoid
             // concurrent modification exception as crappy java can't handle removal from Set while iterating
@@ -101,7 +88,7 @@ public class ForwardSolver implements Solver {
             }
             searchTreeEdge = currentCSPVar.toString();
             try {
-                bcsp.reviseArcs(currentCSPVar.getId());
+                bcsp.reviseArcs_FC(currentCSPVar.getId());
             }
             finally {
                 createGraphNode(searchTreeEdge);
@@ -110,7 +97,7 @@ public class ForwardSolver implements Solver {
                 hasSolution = true;
                 return true;
             }
-            hasSolution = step(slow);//recurse
+            hasSolution = step(varH, valH, slow);//recurse
             return hasSolution;
         }
         catch (NoSolutionException ex){//try right node, i.e. remove assignment from left from variable domain
@@ -122,7 +109,7 @@ public class ForwardSolver implements Solver {
                 //System.out.println(" to parent node: " + searchTreeActiveNode);
                 searchTreeEdge = currentCSPVar.toString();
                 try {
-                    bcsp.reviseArcs(currentCSPVar.getId());
+                    bcsp.reviseArcs_FC(currentCSPVar.getId());
                 }
                 finally {
                     createGraphNode(searchTreeEdge);
@@ -131,7 +118,7 @@ public class ForwardSolver implements Solver {
                     hasSolution = true;
                     return true;
                 }
-                hasSolution = step(slow);//recurse
+                hasSolution = step(varH, valH, slow);//recurse
             }
             catch (NoSolutionException ex2){
                 bcsp.pop();
@@ -161,7 +148,7 @@ public class ForwardSolver implements Solver {
         DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
         gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
         vv.setGraphMouse(gm);
-        //vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
+        vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
         vv.getRenderContext().setEdgeLabelTransformer(s -> StringUtils.substringAfterLast(s, ":"));
         vv.getRenderingHints().remove(RenderingHints.KEY_ANTIALIASING);
         // Transformer maps the vertex number to a vertex property

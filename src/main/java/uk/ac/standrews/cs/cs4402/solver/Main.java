@@ -3,11 +3,15 @@ package uk.ac.standrews.cs.cs4402.solver;
 import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryCSP;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.BinaryCSPGraph;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.NoSolutionException;
-import uk.ac.standrews.cs.cs4402.solver.graphDataModel.VarNode;
+import uk.ac.standrews.cs.cs4402.solver.heuristics.values.*;
+import uk.ac.standrews.cs.cs4402.solver.heuristics.variables.*;
 import uk.ac.standrews.cs.cs4402.solver.input.BinaryCSPReader;
+import uk.ac.standrews.cs.cs4402.solver.solvers.FCSolver;
+import uk.ac.standrews.cs.cs4402.solver.solvers.MACSolverAC3;
+import uk.ac.standrews.cs.cs4402.solver.solvers.Solver;
 
 public class Main {
-    static String inputFile = "langfords2_3.csp";
+    static String inputFile = "langfords2_4.csp";
     public static void main(String args[]){
         if(args.length==1){
             inputFile = args[0];
@@ -32,34 +36,40 @@ public class Main {
         graphBuildTime = System.nanoTime();
         if (bcsp.getNoVariables() < 15)
             bcspg.draw();
-        /*bcspg.pruneFromVariableDomain(0, 3);
-        bcspg.pruneFromVariableDomain(0, 0);
-        bcspg.reviseArcs(0);
-        //bcspg.push();
-        bcspg.pruneFromVariableDomain(1, 0);
-        bcspg.pruneFromVariableDomain(1, 3);
-        bcspg.pruneFromVariableDomain(1, 2);
-        bcspg.reviseArcs(1);
-        //bcspg.push();
-        //bcspg.pop();
-        //bcspg.pop();
-        */
 
-        Solver solver = new ForwardSolver();
+
+        //Solver solver = new FCSolver();
+        //Solver solver = new MACSolverAC25();
+        Solver solver = new MACSolverAC3();
         solver.setCSP(bcspg);
         boolean SAT = false;
+        //VariableOrderingHeuristic varH = new FixedStaticIdVariableOrdering();
+        //VariableOrderingHeuristic varH = new FixedStaticDegreeVariableOrdering();
+        //VariableOrderingHeuristic varH = new FixedStaticCardinalityVariableOrdering(bcspg);
+        //VariableOrderingHeuristic varH = new FileStaticVariableOrdering(bcspg);
+        //VariableOrderingHeuristic varH = new DynamicDomainVariableOrdering();
+        //VariableOrderingHeuristic varH = new DynamicBrelazVariableOrdering();
+        VariableOrderingHeuristic varH = new DynamicDomDegVariableOrder();
+
+
+        //ValueOrderingHeuristic valH = new FixedStaticMagnitudeValueOrdering(false);
+        //ValueOrderingHeuristic valH = new DynamicMinConflictsValueOrdering(bcspg);
+        //ValueOrderingHeuristic valH = new DynamicCrucialityValueOrdering(bcspg);
+        ValueOrderingHeuristic valH = new DynamicPromiseValueOrdering(bcspg);
+
+
         solverSetupTime = System.nanoTime();
-        solver.displaySearchTree(true);
+        //solver.displaySearchTree(true);
         try {
-            SAT = solver.step(true);
+            SAT = solver.step(varH,valH, false);
         } catch (NoSolutionException ex) {
             ex.printStackTrace();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         solveTime = System.nanoTime();
-        //if (solver.getNumNodes() < 250)
-        //    solver.displaySearchTree(false);
+        if (solver.getNumNodes() < 500)
+            solver.displaySearchTree(false);
         System.out.println(SAT);
         if (SAT) {
             System.out.println("Assignments: ");
