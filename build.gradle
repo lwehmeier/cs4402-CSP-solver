@@ -7,8 +7,10 @@ buildscript {
     }
     dependencies {
         classpath 'org.xtext:xtext-gradle-plugin:1.0.2'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
     }
 }
+apply plugin: 'com.github.johnrengelman.shadow'
 repositories {
     mavenCentral()
 }
@@ -28,5 +30,15 @@ dependencies {
     compile group: 'org.apache.servicemix.bundles', name: 'org.apache.servicemix.bundles.collections-generic', version: '4.01_1'
     // https://mvnrepository.com/artifact/com.google.guava/guava
     compile group: 'com.google.guava', name: 'guava', version: '24.1-jre'
+    // https://mvnrepository.com/artifact/commons-cli/commons-cli
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
+}
 
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'uk.ac.standrews.cs.cs4402.solver.Main'
+        )
+    }
 }

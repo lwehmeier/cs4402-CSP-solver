@@ -22,6 +22,7 @@ public class FixedStaticCardinalityVariableOrdering extends VariableOrderingHeur
                     .filter(varNode -> !varOrderList.contains(varNode));
             VarNode best = connectedNodes.sorted((vn1, vn2) -> calcCardinality(vn2, bcsp).compareTo(calcCardinality(vn1, bcsp))).findFirst().get();//invert order, we want highest card.
             varOrderList.add(best);
+            current = best;
         }
     }
     protected Integer calcCardinality(VarNode vn, BinaryCSPGraph bcsp){
