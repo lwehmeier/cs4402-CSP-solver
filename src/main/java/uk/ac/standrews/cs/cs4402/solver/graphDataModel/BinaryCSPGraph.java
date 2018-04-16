@@ -12,6 +12,10 @@ import org.jgrapht.alg.util.Pair;
 import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryCSP;
 import uk.ac.standrews.cs.cs4402.solver.heuristics.values.ValueOrderingHeuristic;
 import uk.ac.standrews.cs.cs4402.solver.heuristics.variables.VariableOrderingHeuristic;
+import uk.standrews.cs.cs4402.dsl.dSL.BinaryConstraint;
+import uk.standrews.cs.cs4402.dsl.dSL.CSP;
+import uk.standrews.cs.cs4402.dsl.dSL.RangeVariable;
+import uk.standrews.cs.cs4402.dsl.dSL.SetVariable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,17 +26,18 @@ import java.util.stream.Collectors;
 public class BinaryCSPGraph {
     private final static boolean debug = false;
     private Graph<VarNode, ConstraintEdge> graph;
-    private List<VarNode> variables;
+    private Map<Integer, VarNode> variables;
     private Stack<Map<VarNode, Set<Integer>>> pruneSteps = new Stack<>();
     private Map<VarNode, Set<Integer>> currentPruneOp = new HashMap<>();
 
     public BinaryCSPGraph(){
         graph = new DirectedSparseGraph<>();
+        variables = new HashMap<>();
     }
     public static BinaryCSPGraph buildGraph(BinaryCSP bcsp){
         BinaryCSPGraph bcspg = new BinaryCSPGraph();
         List<VarNode> vars = bcsp.getVarNodes();
-        bcspg.variables = vars;
+        vars.stream().forEach(varNode -> bcspg.variables.put(varNode.getId(), varNode));
         for(VarNode vn : vars){
             bcspg.graph.addVertex(vn);
         }
@@ -46,7 +51,47 @@ public class BinaryCSPGraph {
         }
         return bcspg;
     }
-
+    protected static VarNode xtextToInternal(uk.standrews.cs.cs4402.dsl.dSL.VarNode vn){
+        if(vn instanceof RangeVariable){
+            RangeVariable var = (RangeVariable)vn;
+            return new VarNode(var.getRange().getLower(), var.getRange().getUpper(), var.getVarID());
+        }
+        SetVariable var = (SetVariable) vn;
+        Set<Integer> domain = new HashSet<>();
+        for(int val : var.getSet().getValues()){
+            domain.add(val);
+        }
+        return new VarNode(domain, var.getVarID());
+    }
+    protected static ConstraintEdge xtextToInternal(BinaryConstraint bc){
+        ConstraintEdge ce = new ConstraintEdge(bc.getTuples().stream()
+                .map(bct -> new Pair<Integer, Integer>(bct.getLeft(), bct.getRight()))
+                .collect(Collectors.toList()));
+        return ce;
+    }
+    protected static ConstraintEdge xtextToInternal_invertedEdge(BinaryConstraint bc){
+        ConstraintEdge ce = new ConstraintEdge(bc.getTuples().stream()
+                .map(bct -> new Pair<Integer, Integer>(bct.getRight(), bct.getLeft()))
+                .collect(Collectors.toList()));
+        return ce;
+    }
+    public static BinaryCSPGraph buildGraph(CSP bcsp){
+        BinaryCSPGraph bcspg = new BinaryCSPGraph();
+        List<VarNode> vars = bcsp.getVariables().stream().map(varNode -> xtextToInternal(varNode)).collect(Collectors.toList());
+        vars.stream().forEach(varNode -> bcspg.variables.put(varNode.getId(), varNode));
+        for(VarNode vn : vars){
+            bcspg.graph.addVertex(vn);
+        }
+        for(BinaryConstraint bc : bcsp.getConstraints()){
+            VarNode vn1 = bcspg.getNode(bc.getVn1().getVarID());
+            VarNode vn2 = bcspg.getNode(bc.getVn2().getVarID());
+            ConstraintEdge ce = xtextToInternal(bc);
+            bcspg.graph.addEdge(ce, vn1, vn2);
+            ce = xtextToInternal_invertedEdge(bc);
+            bcspg.graph.addEdge(ce, vn2, vn1);
+        }
+        return bcspg;
+    }
     public void draw(){
         Layout<VarNode, ConstraintEdge> layout = new CircleLayout<>(graph);
         layout.setSize(new Dimension(900,900)); // sets the initial size of the space
@@ -132,7 +177,7 @@ public class BinaryCSPGraph {
         Set<VarNode> changedVars = new HashSet<>();
         changedVars.add(getNode(varIndex));
         Set<VarNode> assignedVars = new HashSet<>();
-        variables.stream().forEach(varNode -> {if(varNode.getDomain().size()==1){assignedVars.add(varNode);}});
+        variables.values().stream().forEach(varNode -> {if(varNode.getDomain().size()==1){assignedVars.add(varNode);}});
         boolean nodeChange = true;
         if(debug)
             System.out.println("reviseArcs_AC3 called for Node index " + Integer.toString(varIndex));
@@ -281,12 +326,12 @@ public class BinaryCSPGraph {
     public int getVarCnt(){
         return graph.getVertexCount();
     }
-    public List<VarNode> getNodes(){
-        return variables;
+    public Collection<VarNode> getNodes(){
+        return variables.values();
     }
     public String stateToString(){
         String ret = "<html>";
-        for(VarNode vn : variables){
+        for(VarNode vn : variables.values()){
             ret+=vn.toString()+"<br>";
         }
         return ret;
@@ -304,7 +349,7 @@ public class BinaryCSPGraph {
             return null;
         }
         Map<Integer, Integer> asnm = new HashMap<>();
-        for(VarNode vn : variables){
+        for(VarNode vn : variables.values()){
             asnm.put(vn.getId(), vn.getDomain().iterator().next());
         }
         return asnm;

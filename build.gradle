@@ -1,24 +1,20 @@
 version 'V1.1'
 
-apply plugin: 'java'
-apply plugin: 'checkstyle'
-apply plugin: 'findbugs'
-//apply plugin: 'jacoco'
 sourceCompatibility = 1.8
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.2'
+        classpath 'org.xtext:xtext-gradle-plugin:1.0.2'
     }
 }
-apply plugin: 'com.github.johnrengelman.shadow'
 repositories {
     mavenCentral()
 }
-ext.jerseyVersion = '2.26'
+apply plugin: 'org.xtext.xtend'
 dependencies {
+    compile project(':cs4402.dsl')
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'org.jgrapht', name: 'jgrapht-core', version: '1.1.0'
     compile group: 'net.sf.jung', name: 'jung-api', version: '2.1.1'
@@ -33,55 +29,4 @@ dependencies {
     // https://mvnrepository.com/artifact/com.google.guava/guava
     compile group: 'com.google.guava', name: 'guava', version: '24.1-jre'
 
-
-
-
 }
-jar {
-  manifest {
-    attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'uk.ac.standrews.cs.cs4402.solver.Main'
-    )
-  }
-}
-tasks.withType(FindBugs) {
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
-    effort = "max"
-    reportLevel = "high"
-    excludeFilter = file("$rootDir/findbugs.xml")
-}
-
-checkstyle {
-    toolVersion "7.6.1"
-    configFile = new File(rootDir, 'checkstyle.xml')
-}
-//jacocoTestReport {
-//    reports {
-//        xml.enabled false
-//        csv.enabled false
-//	 html.destination file("${buildDir}/reports/coverage")
-//    }
-//}
-//jacocoTestCoverageVerification {
-//    violationRules {
-//        rule {
-//            limit {
-//                minimum = 0.8
-//            }
-//        }
-//    }
-//}
-gradle.taskGraph.beforeTask { task ->
-    if ( task.name == "checkstyleTest"
-) {
-        task.deleteAllActions()
-    }
-}
-//check.dependsOn jacocoTestReport
-//check.dependsOn jacocoTestCoverageVerification
-build.dependsOn check
-//build.dependsOn shadowJar

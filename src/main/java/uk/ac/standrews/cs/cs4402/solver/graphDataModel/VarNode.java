@@ -33,6 +33,21 @@ public class VarNode {
         }
         setDomain(domain);
     }
+    public VarNode(Set<Integer> domain, int id){
+        this(domain);
+        this.varID=id;
+        name = Integer.toString(varID);
+    }
+    public VarNode(List<Integer> domain, int id){
+        this(domain);
+        this.varID=id;
+        name = Integer.toString(varID);
+    }
+    public VarNode(int lower, int upper, int id) {
+        this(lower, upper);
+        this.varID=id;
+        name = Integer.toString(varID);
+    }
 
     public Set<Integer> getDomain() {
         return domain;

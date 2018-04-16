@@ -9,9 +9,11 @@ import uk.ac.standrews.cs.cs4402.solver.input.BinaryCSPReader;
 import uk.ac.standrews.cs.cs4402.solver.solvers.FCSolver;
 import uk.ac.standrews.cs.cs4402.solver.solvers.MACSolverAC3;
 import uk.ac.standrews.cs.cs4402.solver.solvers.Solver;
+import uk.standrews.cs.cs4402.dsl.dSL.CSP;
+import uk.standrews.cs.cs4402.dsl.dSL.VarNode;
 
 public class Main {
-    static String inputFile = "langfords2_4.csp";
+    static String inputFile = "cs4402.dsl.solver/langfords2_4.csp";
     public static void main(String args[]){
         if(args.length==1){
             inputFile = args[0];
@@ -28,11 +30,13 @@ public class Main {
 
         BinaryCSPReader reader = new BinaryCSPReader() ;
         //System.out.println(reader.readBinaryCSP(inputFile)) ;
-
         BinaryCSP bcsp = reader.readBinaryCSP(inputFile);
+        CSP xtext_csp = uk.standrews.cs.cs4402.dsl.Main.parse();
         readTime = System.nanoTime();
 
         BinaryCSPGraph bcspg = BinaryCSPGraph.buildGraph(bcsp);
+        BinaryCSPGraph xtext_bcspg = BinaryCSPGraph.buildGraph(xtext_csp);
+        bcspg = xtext_bcspg;
         graphBuildTime = System.nanoTime();
         if (bcsp.getNoVariables() < 15)
             bcspg.draw();
