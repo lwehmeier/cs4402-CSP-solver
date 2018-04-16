@@ -247,7 +247,8 @@ public class BinaryCSPGraph {
                     pruneFromVariableDomain(tgt, i);
                 }
                 if(graph.getOpposite(vn, ce).getDomain().size()==1){//sz 1 is basically an assignment. Let's check it NOW
-                    System.out.println("\t\t\tTarget has only one remaining domain element, that's equal to an assignment. Checking this assignment now");
+                    if(debug)
+                        System.out.println("\t\t\tTarget has only one remaining domain element, that's equal to an assignment. Checking this assignment now");
                     reviseArcs_FC(graph.getOpposite(vn, ce).getId());
                 }
             }
