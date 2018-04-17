@@ -17,17 +17,18 @@ public class Main {
     public static void main(String args[]){
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "4");
         if(args.length==0){
-            args = new String[8];
+            args = new String[9];
             args[0]="--algorithm";
             args[1]="fc";
             args[2]="--var-heuristic";
-            args[3]="cardinality";
+            args[3]="degree";
             args[4]="--val-heuristic";
             args[5]="magnitude-desc";
             args[6]="-F";
             //args[7]="../test.bcsp";
-            args[7]="cs4402.dsl.solver/langfords3_9.csp";
+            args[7]="cs4402.dsl.solver/langfords2_3.csp";
             //args[8]="--json";
+            args[8]="--slow";
         }
 
 
@@ -37,6 +38,7 @@ public class Main {
 
         CLI cli = new CLI(args);
         cli.parse();
+        boolean slowSteps = cli.isSlow();
         boolean json = cli.isOutputJson();
 
 
@@ -55,17 +57,18 @@ public class Main {
 
         solverSetupTime = System.nanoTime();
 
-
-        //solver.displaySearchTree(true);
+        if(slowSteps) {
+            solver.displaySearchTree(true);
+        }
         try {
-            SAT = solver.step(varH,valH, false);
+            SAT = solver.step(varH,valH, slowSteps);
         } catch (NoSolutionException ex) {
             ex.printStackTrace();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         solveTime = System.nanoTime();
-        if (!json && solver.getNumNodes() < 500)
+        if (!json && solver.getNumNodes() < 500 && !slowSteps)
             solver.displaySearchTree(false);
         if(!json) {
             System.out.println(SAT);
@@ -90,6 +93,16 @@ public class Main {
             System.out.print(Double.toString((double)(solverSetupTime - parseTime) / 1000000));
             System.out.print(", \"solve_time\" : ");
             System.out.print(Double.toString((double)(solveTime - solverSetupTime) / 1000000));
+            System.out.print(", \"varH_time\" : ");
+            System.out.print(Double.toString((double)(varH.getCompute_time_us()) / 1000));
+            System.out.print(", \"varH_setup_time\" : ");
+            System.out.print(Double.toString((double)(varH.getSetup_time_us()) / 1000));
+            System.out.print(", \"valH_time\" : ");
+            System.out.print(Double.toString((double)(valH.getCompute_time_us()) / 1000));
+            System.out.print(", \"valH_setup_time\" : ");
+            System.out.print(Double.toString((double)(valH.getSetup_time_us()) / 1000));
+            System.out.print(", \"arc_revision_time\" : ");
+            System.out.print(Double.toString((double)(bcsp.getArc_revision_time_us()) / 1000));
             System.out.print(", \"solver_nodes\" : ");
             System.out.print(Integer.toString(solver.getNumNodes()));
             System.out.print(", \"csp_variables\" : ");

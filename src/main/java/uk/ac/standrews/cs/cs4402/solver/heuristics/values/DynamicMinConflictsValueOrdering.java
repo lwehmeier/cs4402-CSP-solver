@@ -21,6 +21,7 @@ public class DynamicMinConflictsValueOrdering extends ValueOrderingHeuristic{
     }
     @Override
     public int getNextVal(VarNode vn) {
+        long start=System.nanoTime();
         Set<Integer> domain = vn.getDomain();
         List<VarNode> future = bcsp.getGraph(key).getNeighbors(vn).stream()
                 .filter(varNode -> varNode.getDomain().size()>1)
@@ -28,6 +29,7 @@ public class DynamicMinConflictsValueOrdering extends ValueOrderingHeuristic{
         int next = domain.stream().
                 sorted((e1, e2) -> getConflictScore(vn, e1, future).compareTo(getConflictScore(vn, e2, future))).
                 findFirst().get();
+        compute_time_us +=(System.nanoTime()-start)/1000;
         return next;
     }
     protected Integer getConflictScore(VarNode vn, Integer value, List<VarNode> future){

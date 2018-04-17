@@ -16,6 +16,7 @@ public class DynamicPromiseValueOrdering extends ValueOrderingHeuristic {
     }
     @Override
     public int getNextVal(VarNode vn) {
+        long start = System.nanoTime();
         Set<Integer> domain = vn.getDomain();
         List<VarNode> future = bcsp.getGraph(key).getNeighbors(vn).stream()
                 .filter(varNode -> varNode.getDomain().size()>1)
@@ -23,6 +24,7 @@ public class DynamicPromiseValueOrdering extends ValueOrderingHeuristic {
         int next = domain.stream().
                 sorted((e1, e2) -> getLEFTSize(vn, e2, future).compareTo(getLEFTSize(vn, e1, future))). //maximize score
                 findFirst().get();
+        compute_time_us +=(System.nanoTime()-start)/1000;
         return next;
     }
     protected Integer getLEFTSize(VarNode src, Integer assignment, Collection<VarNode> future){

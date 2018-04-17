@@ -11,11 +11,13 @@ import java.util.Scanner;
 public class FileStaticVariableOrdering extends VariableOrderingHeuristic{
     protected List<VarNode> varOrderList;
     public FileStaticVariableOrdering(BinaryCSPGraph bcsp){
+        long start = System.nanoTime();
         int nNodes = bcsp.getVarCnt();
         varOrderList = new ArrayList<>(nNodes);
         for(Integer vn : readOrder(nNodes)){
             varOrderList.add(bcsp.getNode(vn));
         }
+        setup_time_us =(System.nanoTime()-start)/1000;
     }
     Integer[] readOrder(int size){
         try {
@@ -35,6 +37,9 @@ public class FileStaticVariableOrdering extends VariableOrderingHeuristic{
     }
     @Override
     public VarNode getNextVal(BinaryCSPGraph bcsp) {
-        return varOrderList.stream().filter(varNode -> varNode.getDomain().size()>1).findFirst().get();
+        long start = System.nanoTime();
+        VarNode ret = varOrderList.stream().filter(varNode -> varNode.getDomain().size()>1).findFirst().get();
+        compute_time_us +=(System.nanoTime()-start)/1000;
+        return ret;
     }
 }

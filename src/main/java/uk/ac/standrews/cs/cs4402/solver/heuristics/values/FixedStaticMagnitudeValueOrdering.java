@@ -11,9 +11,11 @@ public class FixedStaticMagnitudeValueOrdering extends ValueOrderingHeuristic{
     }
     @Override
     public int getNextVal(VarNode vn) {
+        long start = System.nanoTime();
         Set<Integer> domain = vn.getDomain();
         int next = domain.stream().sorted((e1, e2) -> orderAsc?new Integer(e1).compareTo(e2):new Integer(e2).compareTo(e1)).
                 findFirst().get();
+        compute_time_us +=(System.nanoTime()-start)/1000;
         return next;
     }
 }

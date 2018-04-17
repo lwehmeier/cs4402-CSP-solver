@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 public class FixedStaticCardinalityVariableOrdering extends VariableOrderingHeuristic{
     protected List<VarNode> varOrderList;
     public FixedStaticCardinalityVariableOrdering(BinaryCSPGraph bcsp){
+        long start = System.nanoTime();
         varOrderList = new ArrayList<>(bcsp.getVarCnt());
         VarNode current = bcsp.getNode(0);
         varOrderList.add(current);
@@ -24,6 +25,7 @@ public class FixedStaticCardinalityVariableOrdering extends VariableOrderingHeur
             varOrderList.add(best);
             current = best;
         }
+        setup_time_us =(System.nanoTime()-start)/1000;
     }
     protected Integer calcCardinality(VarNode vn, BinaryCSPGraph bcsp){
         Graph<VarNode, ConstraintEdge> graph = bcsp.getGraph(key);
@@ -37,6 +39,9 @@ public class FixedStaticCardinalityVariableOrdering extends VariableOrderingHeur
     }
     @Override
     public VarNode getNextVal(BinaryCSPGraph bcsp) {
-        return varOrderList.stream().filter(varNode -> varNode.getDomain().size()>1).findFirst().get();
+        long start = System.nanoTime();
+        VarNode ret = varOrderList.stream().filter(varNode -> varNode.getDomain().size()>1).findFirst().get();
+        compute_time_us +=(System.nanoTime()-start)/1000;
+        return ret;
     }
 }

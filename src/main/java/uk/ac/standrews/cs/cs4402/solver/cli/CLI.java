@@ -27,6 +27,7 @@ public class CLI {
     private ValueOrderingHeuristic valh = null;
     private VariableOrderingHeuristic varh = null;
     private Solver solver =null;
+    private boolean slow=false;
     private boolean outputJson = false;
 
     public CLI(String[] args) {
@@ -40,6 +41,7 @@ public class CLI {
         options.addOption("f", "file", true, "bcsp file");
         options.addOption("F", "file-deprecated", true, "old csp file using provided parser");
         options.addOption("j", "json", false, "output statistics in json format");
+        options.addOption("s", "slow", false, "perform steps slowly step by step. Show in solver tree");
     }
 
     public void parse() {
@@ -143,6 +145,9 @@ public class CLI {
             if (cmd.hasOption("j")) {
                 outputJson = true;
             }
+            if (cmd.hasOption("s")) {
+                slow = true;
+            }
 
         } catch (ParseException e) {
             help();
@@ -175,5 +180,9 @@ public class CLI {
 
     public boolean isOutputJson() {
         return outputJson;
+    }
+
+    public boolean isSlow() {
+        return slow;
     }
 }

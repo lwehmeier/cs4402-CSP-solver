@@ -18,10 +18,12 @@ public class DynamicCrucialityValueOrdering extends ValueOrderingHeuristic{
     }
     @Override
     public int getNextVal(VarNode vn) {
+        long start = System.nanoTime();
         Set<Integer> domain = vn.getDomain();
         int next = domain.stream().
                 sorted((e1, e2) -> calcCruciality(vn, e1).compareTo(calcCruciality(vn, e2))).
                 findFirst().get();
+        compute_time_us +=(System.nanoTime()-start)/1000;
         return next;
     }
     protected Double calcCruciality(VarNode vn, Integer assignment){

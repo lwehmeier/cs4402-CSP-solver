@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 public class DynamicBrelazVariableOrdering extends VariableOrderingHeuristic {
     protected VarNode getNextNode(BinaryCSPGraph bcsp){
+        long start = System.nanoTime();
         Graph<VarNode, ConstraintEdge> graph = bcsp.getGraph(key);
 
         //don't loop, only interested in next node
@@ -20,6 +21,7 @@ public class DynamicBrelazVariableOrdering extends VariableOrderingHeuristic {
         List<VarNode> futureVars = bcsp.getNodes().stream().filter(varNode -> varNode.getDomain().size() > 1).collect(Collectors.toList());
             VarNode best = futureVars.stream().sorted((vn1, vn2) -> calcDegree(vn2, bcsp, futureVars).compareTo(calcDegree(vn1, bcsp, futureVars))).findFirst().get();//invert order, we want highest card.
         //}
+        compute_time_us +=(System.nanoTime()-start)/1000;
         return best;
     }
     protected Integer calcDegree(VarNode vn, BinaryCSPGraph bcsp, List<VarNode> futureNodes){ //in future subgraph

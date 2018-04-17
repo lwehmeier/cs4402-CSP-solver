@@ -1,6 +1,5 @@
 package uk.ac.standrews.cs.cs4402.solver.graphDataModel;
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import edu.uci.ics.jung.algorithms.layout.*;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
@@ -29,7 +28,10 @@ public class BinaryCSPGraph {
     private Map<Integer, VarNode> variables;
     private Stack<Map<VarNode, Set<Integer>>> pruneSteps = new Stack<>();
     private Map<VarNode, Set<Integer>> currentPruneOp = new HashMap<>();
-
+    private long arc_revision_time_us =0;
+    public long getArc_revision_time_us() {
+        return arc_revision_time_us;
+    }
     public BinaryCSPGraph(){
         graph = new DirectedSparseGraph<>();
         variables = new HashMap<>();
@@ -129,6 +131,7 @@ public class BinaryCSPGraph {
     //difference to AC3: it does check all outgoing arcs for a given node,
     //including the arc through which changes propagated to the node
     public void reviseArcs_AC25(int varIndex){ //for specified node and propagate changes
+        long start = System.nanoTime();
         Set<VarNode> changedVars = new HashSet<>();
         changedVars.add(getNode(varIndex));
         boolean nodeChange = true;
@@ -169,11 +172,12 @@ public class BinaryCSPGraph {
                 }
             }
         }
+        arc_revision_time_us +=(System.nanoTime()-start)/1000;
         //assert variables.parallelStream().allMatch(varNode -> varNode.getDomain().size()>=1);
     }
     //implements AC3
-    //TODO: add set of edges instead of iterating over all for active node
     public void reviseArcs_AC3(int varIndex){ //for specified node and propagate changes
+        long start = System.nanoTime();
         Set<VarNode> changedVars = new HashSet<>();
         changedVars.add(getNode(varIndex));
         Set<VarNode> assignedVars = new HashSet<>();
@@ -221,10 +225,12 @@ public class BinaryCSPGraph {
                 }
             }
         }
+        arc_revision_time_us +=(System.nanoTime()-start)/1000;
         //assert variables.parallelStream().allMatch(varNode -> varNode.getDomain().size()>=1);
     }
     //implements forward checking, single propagation step
     public void reviseArcs_FC(int varIndex){ //for specified node and propagate changes
+        long start = System.nanoTime();
         VarNode vn = getNode(varIndex);
         if(debug)
             System.out.println("reviseArcs_FC called for Node index " + Integer.toString(varIndex));
@@ -253,6 +259,7 @@ public class BinaryCSPGraph {
                 }
             }
         }
+        arc_revision_time_us +=(System.nanoTime()-start)/1000;
         //assert variables.parallelStream().allMatch(varNode -> varNode.getDomain().size()>=1);
     }
     protected Set<Integer> getUnreachableDomainSubset(VarNode src, VarNode target, ConstraintEdge ce){
