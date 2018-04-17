@@ -24,11 +24,11 @@ public class Main {
             args[3]="min-width";
             args[4]="--val-heuristic";
             args[5]="magnitude-desc";
-            args[6]="-F";
-            //args[7]="../test.bcsp";
-            args[7]="cs4402.dsl.solver/langfords3_9.csp";
-            args[8]="--json";
-            //args[8]="--slow";
+            args[6]="-f";
+            args[7]="../test.bcsp";
+            //args[7]="cs4402.dsl.solver/langfords3_9.csp";
+            //args[8]="--json";
+            args[8]="--slow";
         }
 
 

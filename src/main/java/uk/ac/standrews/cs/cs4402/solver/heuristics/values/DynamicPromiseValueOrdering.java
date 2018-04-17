@@ -38,12 +38,7 @@ public class DynamicPromiseValueOrdering extends ValueOrderingHeuristic {
         Set<Integer> srcDomain = new HashSet<>();
         srcDomain.add(assignment);
         Set<Integer> targetDomain = target.getDomain();
-        Set<Integer> allowedDomain = new HashSet<>();
-        for(Pair<Integer, Integer> tuple : bcsp.getEdgeTuples(key, ce)){
-            if(srcDomain.contains(tuple.getFirst())){
-                allowedDomain.add(tuple.getSecond());
-            }
-        }
+        Set<Integer> allowedDomain = bcsp.getEdgeTargetDomain(key, src, target, ce);
         return (int) targetDomain.parallelStream().filter(i -> allowedDomain.contains(i)).count();
     }
 }

@@ -7,14 +7,13 @@ import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
+import org.apache.commons.lang3.NotImplementedException;
 import org.jgrapht.alg.util.Pair;
 import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryCSP;
+import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryTuple;
 import uk.ac.standrews.cs.cs4402.solver.heuristics.values.ValueOrderingHeuristic;
 import uk.ac.standrews.cs.cs4402.solver.heuristics.variables.VariableOrderingHeuristic;
-import uk.standrews.cs.cs4402.dsl.dSL.BinaryConstraint;
-import uk.standrews.cs.cs4402.dsl.dSL.CSP;
-import uk.standrews.cs.cs4402.dsl.dSL.RangeVariable;
-import uk.standrews.cs.cs4402.dsl.dSL.SetVariable;
+import uk.standrews.cs.cs4402.dsl.dSL.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -66,16 +65,32 @@ public class BinaryCSPGraph {
         return new VarNode(domain, var.getVarID());
     }
     protected static ConstraintEdge xtextToInternal(BinaryConstraint bc){
-        ConstraintEdge ce = new ConstraintEdge(bc.getTuples().stream()
-                .map(bct -> new Pair<Integer, Integer>(bct.getLeft(), bct.getRight()))
-                .collect(Collectors.toList()));
-        return ce;
+        if(bc instanceof BinaryTupleConstraint) {
+            ConstraintEdge ce = new ConstraintEdge(((BinaryTupleConstraint) bc).getTuples().stream()
+                    .map(bct -> new Pair<Integer, Integer>(bct.getLeft(), bct.getRight()))
+                    .collect(Collectors.toList()));
+            return ce;
+        }else if(bc instanceof BinaryIntrinsicConstraint){
+            ConstraintEdge ce = new ConstraintEdgeIntrinsic(((BinaryIntrinsicConstraint) bc).getIntrinsic().getSymbol());
+            return ce;
+        }
+        else {
+            throw new NotImplementedException("unsupported constraint type");
+        }
     }
     protected static ConstraintEdge xtextToInternal_invertedEdge(BinaryConstraint bc){
-        ConstraintEdge ce = new ConstraintEdge(bc.getTuples().stream()
-                .map(bct -> new Pair<Integer, Integer>(bct.getRight(), bct.getLeft()))
-                .collect(Collectors.toList()));
-        return ce;
+        if(bc instanceof BinaryTupleConstraint) {
+            ConstraintEdge ce = new ConstraintEdge(((BinaryTupleConstraint) bc).getTuples().stream()
+                    .map(bct -> new Pair<Integer, Integer>(bct.getRight(), bct.getLeft()))
+                    .collect(Collectors.toList()));
+            return ce;
+        }else if(bc instanceof BinaryIntrinsicConstraint){
+            ConstraintEdge ce = new ConstraintEdgeIntrinsic(((BinaryIntrinsicConstraint) bc).getIntrinsic().getSymbol(), true);
+            return ce;
+        }
+        else {
+            throw new NotImplementedException("unsupported constraint type");
+        }
     }
     public static BinaryCSPGraph buildGraph(CSP bcsp){
         BinaryCSPGraph bcspg = new BinaryCSPGraph();
@@ -266,12 +281,7 @@ public class BinaryCSPGraph {
         Set<Integer> srcDomain = src.getDomain();
         Set<Integer> targetDomain = target.getDomain();
 
-        Set<Integer> allowedDomain = new HashSet<>();
-        for(Pair<Integer, Integer> tuple : ce.tuples){
-            if(srcDomain.contains(tuple.getFirst())){
-                allowedDomain.add(tuple.getSecond());
-            }
-        }
+        Set<Integer> allowedDomain = ce.reachableTargetDomain(src, target);
 
         return targetDomain.parallelStream().filter(i -> !allowedDomain.contains(i)).collect(Collectors.toSet());
     }
@@ -375,8 +385,8 @@ public class BinaryCSPGraph {
         k.hashCode();
         return graph;
     }
-    public Set<Pair<Integer,Integer>> getEdgeTuples(ValueOrderingHeuristic.Key k, ConstraintEdge e){
+    public Set<Integer> getEdgeTargetDomain(ValueOrderingHeuristic.Key k, VarNode src, VarNode tgt, ConstraintEdge e){
         k.hashCode();
-        return e.tuples;
+        return e.reachableTargetDomain(src, tgt);
     }
 }

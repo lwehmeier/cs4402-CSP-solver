@@ -54,12 +54,7 @@ public class DynamicCrucialityValueOrdering extends ValueOrderingHeuristic{
     }
     protected Set<Integer> getUnreachableDomainSubset(VarNode src, Set<Integer> srcDomain, VarNode target, ConstraintEdge ce){
         Set<Integer> targetDomain = target.getDomain();
-        Set<Integer> allowedDomain = new HashSet<>();
-        for(Pair<Integer, Integer> tuple : bcsp.getEdgeTuples(key, ce)){
-            if(srcDomain.contains(tuple.getFirst())){
-                allowedDomain.add(tuple.getSecond());
-            }
-        }
+        Set<Integer> allowedDomain = bcsp.getEdgeTargetDomain(key, src, target, ce);
         return targetDomain.parallelStream().filter(i -> !allowedDomain.contains(i)).collect(Collectors.toSet());
     }
 }
