@@ -43,9 +43,6 @@ public class FCSolver implements Solver {
         }
         return true;
     }
-    public void backtrack(){
-
-    }
 
     protected void createGraphNode(String assignment){
         try {
@@ -60,7 +57,7 @@ public class FCSolver implements Solver {
         }
     }
     @Override
-    public boolean step(VariableOrderingHeuristic varH, ValueOrderingHeuristic valH, boolean slow) {
+    public boolean solve(VariableOrderingHeuristic varH, ValueOrderingHeuristic valH, boolean slow) {
         if(solved()){ //edge case, csp is already solved
             return true;
         }
@@ -97,7 +94,7 @@ public class FCSolver implements Solver {
                 hasSolution = true;
                 return true;
             }
-            hasSolution = step(varH, valH, slow);//recurse
+            hasSolution = solve(varH, valH, slow);//recurse
             return hasSolution;
         }
         catch (NoSolutionException ex){//try right node, i.e. remove assignment from left from variable domain
@@ -118,7 +115,7 @@ public class FCSolver implements Solver {
                     hasSolution = true;
                     return true;
                 }
-                hasSolution = step(varH, valH, slow);//recurse
+                hasSolution = solve(varH, valH, slow);//recurse
             }
             catch (NoSolutionException ex2){
                 bcsp.pop();

@@ -1,33 +1,27 @@
 package uk.ac.standrews.cs.cs4402.solver;
 
 import uk.ac.standrews.cs.cs4402.solver.cli.CLI;
-import uk.ac.standrews.cs.cs4402.solver.dataModel.BinaryCSP;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.BinaryCSPGraph;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.NoSolutionException;
 import uk.ac.standrews.cs.cs4402.solver.heuristics.values.*;
 import uk.ac.standrews.cs.cs4402.solver.heuristics.variables.*;
-import uk.ac.standrews.cs.cs4402.solver.input.BinaryCSPReader;
-import uk.ac.standrews.cs.cs4402.solver.solvers.FCSolver;
-import uk.ac.standrews.cs.cs4402.solver.solvers.MACSolverAC3;
 import uk.ac.standrews.cs.cs4402.solver.solvers.Solver;
-import uk.standrews.cs.cs4402.dsl.dSL.CSP;
-import uk.standrews.cs.cs4402.dsl.dSL.VarNode;
 
 public class Main {
     public static void main(String args[]){
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "4");
         if(args.length==0){
-            args = new String[8];
+            args = new String[9];
             args[0]="--algorithm";
-            args[1]="mac3";
+            args[1]="mac25";
             args[2]="--var-heuristic";
             args[3]="min-width";
             args[4]="--val-heuristic";
             args[5]="magnitude-desc";
             args[6]="-F";
             //args[7]="../test.bcsp";
-            args[7]="cs4402.dsl.solver/langfords3_9.csp";
-            //args[8]="--json";
+            args[7]="cs4402.dsl.solver/langfords3_10.csp";
+            args[8]="--json";
             //args[8]="--slow";
         }
 
@@ -61,7 +55,7 @@ public class Main {
             solver.displaySearchTree(true);
         }
         try {
-            SAT = solver.step(varH,valH, slowSteps);
+            SAT = solver.solve(varH,valH, slowSteps);
         } catch (NoSolutionException ex) {
             ex.printStackTrace();
         } catch (Exception ex) {

@@ -17,9 +17,7 @@ import uk.ac.standrews.cs.cs4402.solver.heuristics.variables.VariableOrderingHeu
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class MACSolverAC3 implements Solver {
     BinaryCSPGraph bcsp;
@@ -51,9 +49,6 @@ public class MACSolverAC3 implements Solver {
         }
         return true;
     }
-    public void backtrack(){
-
-    }
 
     protected void createGraphNode(String assignment){
         try {
@@ -69,7 +64,7 @@ public class MACSolverAC3 implements Solver {
         }
     }
     @Override
-    public boolean step(VariableOrderingHeuristic varH, ValueOrderingHeuristic valH, boolean slow) {
+    public boolean solve(VariableOrderingHeuristic varH, ValueOrderingHeuristic valH, boolean slow) {
         if(solved()){ //edge case, csp is already solved
             return true;
         }
@@ -106,7 +101,7 @@ public class MACSolverAC3 implements Solver {
                 hasSolution = true;
                 return true;
             }
-            hasSolution = step(varH, valH, slow);//recurse
+            hasSolution = solve(varH, valH, slow);//recurse
             return hasSolution;
         }
         catch (NoSolutionException ex){//try right node, i.e. remove assignment from left from variable domain
@@ -127,7 +122,7 @@ public class MACSolverAC3 implements Solver {
                     hasSolution = true;
                     return true;
                 }
-                hasSolution = step(varH, valH, slow);//recurse
+                hasSolution = solve(varH, valH, slow);//recurse
             }
             catch (NoSolutionException ex2){
                 bcsp.pop();

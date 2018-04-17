@@ -34,7 +34,7 @@ public class TestMAC3
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{3,5,1,4,2,6};
@@ -64,7 +64,7 @@ public class TestMAC3
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{5,7,1,4,2,6,3,8};
@@ -94,7 +94,7 @@ public class TestMAC3
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{3,6,8,1,5,0,2,4,7,9};
@@ -125,7 +125,7 @@ public class TestMAC3
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{23,25,27,15,18,21,1,5,9,2,7,12,8,14,20,10,17,24,3,11,19,4,13,22,6,16,26};
@@ -163,7 +163,7 @@ public class TestMAC3
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{1,2,10};

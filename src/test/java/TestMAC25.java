@@ -33,7 +33,7 @@ public class TestMAC25 {
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{3,5,1,4,2,6};
@@ -63,7 +63,7 @@ public class TestMAC25 {
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{5,7,1,4,2,6,3,8};
@@ -93,7 +93,7 @@ public class TestMAC25 {
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{3,6,8,1,5,0,2,4,7,9};

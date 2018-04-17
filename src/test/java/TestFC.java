@@ -2,7 +2,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import uk.ac.standrews.cs.cs4402.solver.cli.CLI;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.BinaryCSPGraph;
-import uk.ac.standrews.cs.cs4402.solver.graphDataModel.NoSolutionException;
 import uk.ac.standrews.cs.cs4402.solver.graphDataModel.VarNode;
 import uk.ac.standrews.cs.cs4402.solver.heuristics.values.ValueOrderingHeuristic;
 import uk.ac.standrews.cs.cs4402.solver.heuristics.variables.VariableOrderingHeuristic;
@@ -33,7 +32,7 @@ public class TestFC {
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{3,5,1,4,2,6};
@@ -64,7 +63,7 @@ public class TestFC {
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{5,7,1,4,2,6,3,8};
@@ -94,7 +93,7 @@ public class TestFC {
         VariableOrderingHeuristic varH = cli.getVarh();
         ValueOrderingHeuristic valH = cli.getValh();
 
-        boolean SAT = solver.step(varH, valH, false);
+        boolean SAT = solver.solve(varH, valH, false);
         assert SAT == true;
         Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
         Integer expected[] = new Integer[]{3,6,8,1,5,0,2,4,7,9};

@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface Solver {
     void setCSP(BinaryCSPGraph csp);
-    boolean step(VariableOrderingHeuristic varH, ValueOrderingHeuristic valH, boolean slow);
+    boolean solve(VariableOrderingHeuristic varH, ValueOrderingHeuristic valH, boolean slow);
     boolean isSAT();
     void displaySearchTree(boolean update);
     Map<Integer, Integer> getAssignments();

@@ -243,7 +243,7 @@ public class BinaryCSPGraph {
         arc_revision_time_us +=(System.nanoTime()-start)/1000;
         //assert variables.parallelStream().allMatch(varNode -> varNode.getDomain().size()>=1);
     }
-    //implements forward checking, single propagation step
+    //implements forward checking, single propagation solve
     public void reviseArcs_FC(int varIndex){ //for specified node and propagate changes
         long start = System.nanoTime();
         VarNode vn = getNode(varIndex);

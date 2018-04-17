@@ -41,7 +41,7 @@ public class CLI {
         options.addOption("f", "file", true, "bcsp file");
         options.addOption("F", "file-deprecated", true, "old csp file using provided parser");
         options.addOption("j", "json", false, "output statistics in json format");
-        options.addOption("s", "slow", false, "perform steps slowly step by step. Show in solver tree");
+        options.addOption("s", "slow", false, "perform steps slowly solve by solve. Show in solver tree");
     }
 
     public void parse() {

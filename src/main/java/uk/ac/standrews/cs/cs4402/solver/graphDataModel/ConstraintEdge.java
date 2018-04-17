@@ -13,10 +13,12 @@ public class ConstraintEdge {
         //create map of start value and all reachable values in hashset for faster access
         for(Pair<Integer, Integer> tuple : tuples){
             Integer left = tuple.getFirst();
-            targetValues.put(left, new HashSet<>());
-            for(Pair<Integer, Integer> tuple2 : tuples){
-                if(left==tuple2.getFirst()){
-                    targetValues.get(left).add(tuple2.getSecond());
+            if(!targetValues.keySet().contains(left)) {
+                targetValues.put(left, new HashSet<>());
+                for (Pair<Integer, Integer> tuple2 : tuples) {
+                    if (left == tuple2.getFirst()) {
+                        targetValues.get(left).add(tuple2.getSecond());
+                    }
                 }
             }
         }
