@@ -9,7 +9,6 @@ public class VarNode {
     private static int id=0;
     private int varID;
     private String name;
-
     public static void reset(){
         id=0;
     }

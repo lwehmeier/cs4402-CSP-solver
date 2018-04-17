@@ -17,18 +17,18 @@ public class Main {
     public static void main(String args[]){
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "4");
         if(args.length==0){
-            args = new String[9];
+            args = new String[8];
             args[0]="--algorithm";
             args[1]="mac3";
             args[2]="--var-heuristic";
             args[3]="min-width";
             args[4]="--val-heuristic";
             args[5]="magnitude-desc";
-            args[6]="-f";
-            args[7]="../test.bcsp";
-            //args[7]="cs4402.dsl.solver/langfords3_9.csp";
+            args[6]="-F";
+            //args[7]="../test.bcsp";
+            args[7]="cs4402.dsl.solver/langfords3_9.csp";
             //args[8]="--json";
-            args[8]="--slow";
+            //args[8]="--slow";
         }
 
 
