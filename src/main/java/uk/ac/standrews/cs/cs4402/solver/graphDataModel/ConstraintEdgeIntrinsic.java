@@ -22,31 +22,31 @@ public class ConstraintEdgeIntrinsic extends ConstraintEdge {
                 if(!invert)
                     decider = (start, end) -> start < end;
                 else
-                    decider = (start, end) -> ! (start < end);
+                    decider = (start, end) -> (start > end);
                 break;
             case "<=":
                 if(!invert)
                     decider = (start, end) -> start <= end;
                 else
-                    decider = (start, end) -> ! (start <= end);
+                    decider = (start, end) -> (start >= end);
                 break;
             case ">":
                 if(!invert)
                     decider = (start, end) -> start > end;
                 else
-                    decider = (start, end) -> ! (start > end);
+                    decider = (start, end) -> (start < end);
                 break;
             case ">=":
                 if(!invert)
                     decider = (start, end) -> start >= end;
                 else
-                    decider = (start, end) -> ! (start >= end);
+                    decider = (start, end) -> (start <= end);
                 break;
             case "=":
                 if(!invert)
                     decider = (start, end) -> start == end;
                 else
-                    decider = (start, end) -> ! (start == end);
+                    decider = (start, end) -> (start == end);
                 break;
             default:
                 throw new org.apache.commons.lang3.NotImplementedException("Intrinsic "+symbol+" not implemented");

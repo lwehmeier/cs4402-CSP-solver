@@ -131,4 +131,42 @@ public class TestMAC3
         Integer expected[] = new Integer[]{23,25,27,15,18,21,1,5,9,2,7,12,8,14,20,10,17,24,3,11,19,4,13,22,6,16,26};
         Assert.assertArrayEquals(expected , assignments );
     }
+
+    /**
+     * variable var1 0 : (0, 42)
+     * variable var3 2 : (4, 10)
+     * variable var2 1 : {1,2,4}
+     * constraint c1 (var1, var2) : {(1,1),(42,42),(1,2)}
+     * constraint c2 (var2, var3) : {<}
+     **/
+    @Test
+    public void runMAC3_combinedTupleIntrinsics() {
+        VarNode.reset();
+        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "4");
+        String args[] = new String[9];
+        args[0] = "--algorithm";
+        args[1] = "mac3";
+        args[2] = "--var-heuristic";
+        args[3] = "min-width";
+        args[4] = "--val-heuristic";
+        args[5] = "magnitude-desc";
+        args[6] = "-f";
+        args[7] = "../../test.bcsp";
+        args[8]="--json";
+        //args[8] = "--slow";
+
+        CLI cli = new CLI(args);
+        cli.parse();
+        BinaryCSPGraph bcsp = cli.getBcspg();
+        Solver solver = cli.getSolver();
+        solver.setCSP(bcsp);
+        VariableOrderingHeuristic varH = cli.getVarh();
+        ValueOrderingHeuristic valH = cli.getValh();
+
+        boolean SAT = solver.step(varH, valH, false);
+        assert SAT == true;
+        Integer assignments[] = solver.getAssignments().values().toArray(new Integer[0]);
+        Integer expected[] = new Integer[]{1,2,10};
+        Assert.assertArrayEquals(expected , assignments );
+    }
 }
