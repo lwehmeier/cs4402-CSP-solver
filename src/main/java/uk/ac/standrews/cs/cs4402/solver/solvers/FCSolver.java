@@ -25,6 +25,7 @@ public class FCSolver implements Solver {
 
     private DelegateTree<String, String> searchTree = new DelegateTree<>();
     private String searchTreeActiveNode;
+    private int searchNodeID=0;
     @Override
     public void setCSP(BinaryCSPGraph csp) {
         bcsp = csp;
@@ -46,7 +47,7 @@ public class FCSolver implements Solver {
 
     protected void createGraphNode(String assignment){
         try {
-            String newNode = bcsp.stateToString();
+            String newNode = bcsp.stateToString()+Integer.toString(searchNodeID++);
             //System.out.println("Created new Child: " + newNode + ", parent: " + searchTreeActiveNode + " for assignment: " + assignment);
             searchTree.addChild(searchTreeActiveNode+":"+newNode+":"+assignment, searchTreeActiveNode, newNode);
             searchTreeActiveNode = newNode;

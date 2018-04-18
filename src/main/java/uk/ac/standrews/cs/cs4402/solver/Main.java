@@ -17,12 +17,12 @@ public class Main {
             args[2]="--var-heuristic";
             args[3]="min-width";
             args[4]="--val-heuristic";
-            args[5]="magnitude-desc";
+            args[5]="magnitude-asc";
             args[6]="-F";
             //args[7]="../test.bcsp";
-            args[7]="cs4402.dsl.solver/langfords3_10.csp";
-            args[8]="--json";
-            //args[8]="--slow";
+            args[7]="cs4402.dsl.solver/6Queens.csp";
+            //args[8]="--json";
+            args[8]="--slow";
         }
 
 
